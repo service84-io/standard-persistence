@@ -7,9 +7,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
+@Service("8AB25BF4-A488-4BFA-90E2-0567CA2B862A")
 public class PaginationTranslator {
-  public static interface PaginationDataDTOStandard {
+  public static interface PaginationDataStandard {
     void setCount(Integer count);
 
     void setIndex(String index);
@@ -32,7 +34,7 @@ public class PaginationTranslator {
     return PageRequest.of(pageNumber, pageSize);
   }
 
-  protected <T extends PaginationDataDTOStandard> T metadata(Page<?> page, Class<T> clazz) {
+  protected <T extends PaginationDataStandard> T metadata(Page<?> page, Class<T> clazz) {
     try {
       T dto = clazz.getConstructor().newInstance();
       dto.setIndex(translatePageIndex(page.getNumber()));
@@ -59,7 +61,7 @@ public class PaginationTranslator {
   }
 
   public Integer translatePageIndex(String pageIndex) {
-    if (pageIndex == null || pageIndex.trim().equals("")) {
+    if ((pageIndex == null) || pageIndex.trim().equals("")) {
       return null;
     }
 
