@@ -106,14 +106,23 @@ configurations.all {
 }
 
 dependencies {
-  implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.3.1.RELEASE'
+  compileOnly 'org.springframework:spring-core:5.0.0.RELEASE'
+  compileOnly 'org.springframework.data:spring-data-jpa:2.0.0.RELEASE'
+  compileOnly 'org.hibernate:hibernate-core:5.0.0.Final'
 
-  implementation 'org.apache.commons:commons-lang3:3.10'
+  compileOnly 'org.apache.commons:commons-lang3:3.0'
 
   ////////////////////////////////
   //Test Dependencies/////////////
   ////////////////////////////////
-  testImplementation 'org.springframework.boot:spring-boot-starter-test:2.3.1.RELEASE'
+  // This fulfils the HibernateCore 5.x.x and SpringDataJPA 2.x.x requirement
+  // As well as the SpringCore 5.x.x requirement
+  testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.4.2'
+
+  // This fulfils the CommonLang 3.x.x requirement
+  testRuntimeOnly 'org.apache.commons:commons-lang3:3.11'
+
+  testImplementation 'org.springframework.boot:spring-boot-starter-test:2.4.2'
 }
 
 test {
