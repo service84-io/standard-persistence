@@ -28,6 +28,7 @@ versions are (built-tested)
     org.springframework.data:spring-data-jpa:(2.0.0.RELEASE-2.4.3)
     org.hibernate:hibernate-core:(5.0.0.Final-5.4.27.Final)
     org.apache.commons:commons-lang3:(3.0-3.11)
+    org.slf4j:slf4j-api:(1.3.0-1.7.30)
 
 ## Build
 This is a Java 11 project that builds best with Gradle 6.3

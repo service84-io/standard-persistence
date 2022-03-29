@@ -18,6 +18,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Base64;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,8 @@ import org.springframework.stereotype.Service;
 
 @Service("8AB25BF4-A488-4BFA-90E2-0567CA2B862A")
 public class PaginationTranslator {
+  private static final Logger logger = LoggerFactory.getLogger(PaginationTranslator.class);
+
   public static interface PaginationDataStandard {
     void setCount(Integer count);
 
@@ -36,6 +40,7 @@ public class PaginationTranslator {
   }
 
   protected Integer getNextPageIndex(Page<?> page) {
+    logger.debug("getNextPageIndex");
     if (page.isLast()) {
       return null;
     }
@@ -44,11 +49,13 @@ public class PaginationTranslator {
   }
 
   public Pageable getPageable(String pageIndex, Integer pageSize) {
+    logger.debug("getPageable");
     Integer pageNumber = ObjectUtils.firstNonNull(translatePageIndex(pageIndex), 0);
     return PageRequest.of(pageNumber, pageSize);
   }
 
   protected <T extends PaginationDataStandard> T metadata(Page<?> page, Class<T> clazz) {
+    logger.debug("metadata");
     try {
       T dto = clazz.getConstructor().newInstance();
       dto.setIndex(translatePageIndex(page.getNumber()));
@@ -67,6 +74,7 @@ public class PaginationTranslator {
   }
 
   public String translatePageIndex(Integer pageIndex) {
+    logger.debug("translatePageIndex");
     if (pageIndex == null) {
       return null;
     }
@@ -75,6 +83,7 @@ public class PaginationTranslator {
   }
 
   public Integer translatePageIndex(String pageIndex) {
+    logger.debug("translatePageIndex");
     if ((pageIndex == null) || pageIndex.trim().equals("")) {
       return null;
     }
