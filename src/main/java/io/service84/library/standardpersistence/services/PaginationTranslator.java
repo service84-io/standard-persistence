@@ -29,18 +29,51 @@ import org.springframework.stereotype.Service;
 public class PaginationTranslator {
   private static final Logger logger = LoggerFactory.getLogger(PaginationTranslator.class);
 
+  /*
+   * @deprecated Use CursorPaginationDataStandard or PagePaginationDataStandard instead
+   */
+  @Deprecated(since = "1.3.0")
   public static interface PaginationDataStandard {
-    void setCount(Integer count);
-
     void setIndex(String index);
 
     void setNextIndex(String nextIndex);
 
+    void setCount(Integer count);
+
     void setTotal(Integer total);
   }
 
+  public static interface CursorPaginationDataStandard {
+    void setCursor(String cursor);
+
+    void setNextCursor(String nextCursor);
+
+    void setCount(Integer count);
+
+    void setTotal(Integer total);
+  }
+
+  public static interface PagePaginationDataStandard {
+    void setPage(Integer page);
+
+    void setNextPage(Integer nextPage);
+
+    void setCount(Integer count);
+
+    void setTotal(Integer total);
+  }
+
+  /*
+   * @deprecated Use getNextIndex
+   */
+  @Deprecated(since = "1.3.0")
   protected Integer getNextPageIndex(Page<?> page) {
     logger.debug("getNextPageIndex");
+    return getNextIndex(page);
+  }
+
+  protected Integer getNextIndex(Page<?> page) {
+    logger.debug("getNextIndex");
     if (page.isLast()) {
       return null;
     }
@@ -48,12 +81,31 @@ public class PaginationTranslator {
     return page.getNumber() + 1;
   }
 
-  public Pageable getPageable(String pageIndex, Integer pageSize) {
+  /*
+   * @deprecated Use getCursorPageable
+   */
+  @Deprecated(since = "1.3.0")
+  public Pageable getPageable(String cursor, Integer pageSize) {
     logger.debug("getPageable");
-    Integer pageNumber = ObjectUtils.firstNonNull(translatePageIndex(pageIndex), 0);
-    return PageRequest.of(pageNumber, pageSize);
+    return getCursorPageable(cursor, pageSize);
   }
 
+  public Pageable getCursorPageable(String cursor, Integer pageSize) {
+    logger.debug("getCursorPageable");
+    Integer pageIndex = ObjectUtils.firstNonNull(translateCursorToIndex(cursor), 0);
+    return PageRequest.of(pageIndex, pageSize);
+  }
+
+  public Pageable getPagePageable(Integer page, Integer pageSize) {
+    logger.debug("getPagePageable");
+    Integer pageIndex = ObjectUtils.firstNonNull(translatePageToIndex(page), 0);
+    return PageRequest.of(pageIndex, pageSize);
+  }
+
+  /*
+   * @deprecated Use cursorMetadata or pageMetadata
+   */
+  @Deprecated(since = "1.3.0")
   protected <T extends PaginationDataStandard> T metadata(Page<?> page, Class<T> clazz) {
     logger.debug("metadata");
     try {
@@ -73,21 +125,96 @@ public class PaginationTranslator {
     }
   }
 
-  public String translatePageIndex(Integer pageIndex) {
-    logger.debug("translatePageIndex");
-    if (pageIndex == null) {
+  protected <T extends CursorPaginationDataStandard> T cursorMetadata(
+      Page<?> page, Class<T> clazz) {
+    logger.debug("cursorMetadata");
+    try {
+      T dto = clazz.getConstructor().newInstance();
+      dto.setCursor(translateIndexToCursor(page.getNumber()));
+      dto.setNextCursor(translateIndexToCursor(getNextIndex(page)));
+      dto.setCount(page.getNumberOfElements());
+      dto.setTotal((int) page.getTotalElements());
+      return dto;
+    } catch (InstantiationException
+        | IllegalAccessException
+        | IllegalArgumentException
+        | InvocationTargetException
+        | NoSuchMethodException
+        | SecurityException e) {
       return null;
     }
-
-    return Base64.getUrlEncoder().encodeToString(pageIndex.toString().getBytes());
   }
 
-  public Integer translatePageIndex(String pageIndex) {
+  protected <T extends PagePaginationDataStandard> T pageMetadata(Page<?> page, Class<T> clazz) {
+    logger.debug("pageMetadata");
+    try {
+      T dto = clazz.getConstructor().newInstance();
+      dto.setPage(translateIndexToPage(page.getNumber()));
+      dto.setNextPage(translateIndexToPage(getNextIndex(page)));
+      dto.setCount(page.getNumberOfElements());
+      dto.setTotal((int) page.getTotalElements());
+      return dto;
+    } catch (InstantiationException
+        | IllegalAccessException
+        | IllegalArgumentException
+        | InvocationTargetException
+        | NoSuchMethodException
+        | SecurityException e) {
+      return null;
+    }
+  }
+
+  /*
+   * @deprecated Use translateIndexToCursor
+   */
+  @Deprecated(since = "1.3.0")
+  public String translatePageIndex(Integer index) {
     logger.debug("translatePageIndex");
-    if ((pageIndex == null) || pageIndex.trim().equals("")) {
+    return translateIndexToCursor(index);
+  }
+
+  public String translateIndexToCursor(Integer index) {
+    logger.debug("translateIndexToCursor");
+    if ((index == null) || index < 0) {
       return null;
     }
 
-    return Integer.valueOf(new String(Base64.getUrlDecoder().decode(pageIndex.getBytes())));
+    return Base64.getUrlEncoder().encodeToString(index.toString().getBytes());
+  }
+
+  public Integer translateIndexToPage(Integer index) {
+    logger.debug("translateIndexToPage");
+    if ((index == null) || index < 0) {
+      return null;
+    }
+
+    return index + 1;
+  }
+
+  /*
+   * @deprecated Use translateCursorToIndex
+   */
+  @Deprecated(since = "1.3.0")
+  public Integer translatePageIndex(String cursor) {
+    logger.debug("translatePageIndex");
+    return translateCursorToIndex(cursor);
+  }
+
+  public Integer translateCursorToIndex(String cursor) {
+    logger.debug("translateCursorToIndex");
+    if ((cursor == null) || cursor.trim().equals("")) {
+      return null;
+    }
+
+    return Integer.valueOf(new String(Base64.getUrlDecoder().decode(cursor.getBytes())));
+  }
+
+  public Integer translatePageToIndex(Integer page) {
+    logger.debug("translatePageToIndex");
+    if ((page == null) || page < 1) {
+      return null;
+    }
+
+    return page - 1;
   }
 }
